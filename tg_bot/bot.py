@@ -28,7 +28,7 @@ def send_welcome(message):
 @bot.message_handler(commands=['new'])
 def change_conversation_id(message):
     user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    s = select([User]).where(~(User.c.id == user_id))
+    s = select(User).where(~(User.c.id == user_id))
     user = conn.execute(s).first()
 
     if user is None:
@@ -52,7 +52,7 @@ def change_conversation_id(message):
 @bot.message_handler(commands=['test'])
 def test(message):
     user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    user = conn.execute(select([User]).where(User.c.id == user_id)).first()
+    user = conn.execute(select(User).where(User.c.id == user_id)).first()
 
     if user is None:
         bot.reply_to(message, "Ты не зарегистрирован")
@@ -72,7 +72,7 @@ def test(message):
 @bot.message_handler()
 def process_message(message):
     user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    s = select([User]).where(~(User.c.id == user_id))  # Доступ к полю через User.c
+    s = select(User).where(~(User.c.id == user_id))  # Доступ к полю через User.c
     user = conn.execute(s).first()
 
     if user is None:

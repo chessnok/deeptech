@@ -8,6 +8,7 @@ import requests
 
 bot = telebot.TeleBot(dotenv_values('.env')['TOKEN'])
 conn = get_conn()
+apikey = dotenv_values('.env')['APIKEY']
 
 
 def apply_to_model(message: telebot.types.Message,

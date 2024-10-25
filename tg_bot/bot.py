@@ -23,39 +23,43 @@ def apply_to_model(message: telebot.types.Message, conversation_id: uuid) -> str
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, "Hello, {0.first_name}!".format(message.from_user))
-    
+
 
 @bot.message_handler(commands=['new'])
 def change_conversation_id(message):
-    s = select([User]).where(~(User.id == message.from_user.id))
+    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
+    s = select([User]).where(~(User.c.id == user_id))
     user = conn.execute(s).first()
+
     if user is None:
         conversation_id = uuid.uuid4()
         conn.execute(
             User.insert().values(
-                id=message.from_user.id, 
+                id=user_id,  # Использование преобразованного ID
                 first_name=message.from_user.first_name,
                 conversation_id=conversation_id
             )
         )
     else:
         conn.execute(
-            User.update().where(User.id == message.from_user.id).values(
+            User.update().where(User.c.id == user_id).values(
                 conversation_id=uuid.uuid4()
             )
         )
     bot.reply_to(message, "Контекст чата очищен")
-    
-    
+
+
 @bot.message_handler(commands=['test'])
 def test(message):
-    user = conn.execute(select([User]).where(User.id == message.from_user.id)).first()
+    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
+    user = conn.execute(select([User]).where(User.c.id == user_id)).first()
+
     if user is None:
         bot.reply_to(message, "Ты не зарегистрирован")
         conversation_id = uuid.uuid4()
         conn.execute(
             User.insert().values(
-                id=message.from_user.id,
+                id=user_id,
                 first_name=message.from_user.first_name,
                 conversation_id=conversation_id
             )
@@ -67,18 +71,21 @@ def test(message):
 
 @bot.message_handler()
 def process_message(message):
-    s = select([User]).where(~(User.id == message.from_user.id))
+    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
+    s = select([User]).where(~(User.c.id == user_id))  # Доступ к полю через User.c
     user = conn.execute(s).first()
+
     if user is None:
         conversation_id = uuid.uuid4()
         conn.execute(
             User.insert().values(
-                id=message.from_user.id, 
+                id=user_id,  # Использование преобразованного ID
                 first_name=message.from_user.first_name,
                 conversation_id=conversation_id
             )
         )
     else:
         conversation_id = user.conversation_id
-    apply_to_model(message, conversation_id)
+
+    # apply_to_model(message, conversation_id) // TODO: Когда будет работать ML
     bot.reply_to(message, "Я тупой бот, скоро тут будет ответ ML")

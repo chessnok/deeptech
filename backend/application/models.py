@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from application import db
 
@@ -39,3 +40,21 @@ class ApiKey(db.Model):
 
     def __repr__(self):
         return f"<ApiKey {self.key}>"
+    
+    def is_expired(self):
+        if not self.expires:
+            return False
+        if self.expires < datetime.now():
+            self.active = False
+            return True
+        return False
+
+    @staticmethod
+    def check_api_key(api_key):
+        api_key = ApiKey.query.filter_by(key=api_key).first()
+        if not api_key:
+            return False
+        if api_key.is_expired():
+            api_key.active = False
+            return False
+        return True

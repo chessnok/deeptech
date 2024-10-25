@@ -3,6 +3,7 @@ from flasgger import swag_from
 from flask_restful import Resource
 from application import app, db, api
 from application.models import Conversation, Message
+from models import ApiKey
 
 
 class NewConversation(Resource):
@@ -24,6 +25,12 @@ class NewConversation(Resource):
     })
     def post(self):
         """Create a new conversation and return its UUID"""
+        args = request.args
+        apikey = args.get("apikey")
+        if not apikey:
+            return {"error": "Missing API key"}, 401
+        if not ApiKey.check_api_key(apikey):
+            return {"error": "Invalid API key"}, 401
         conversation = Conversation()
         db.session.add(conversation)
         db.session.commit()
@@ -70,6 +77,12 @@ class NewMessage(Resource):
     })
     def post(self):
         """Add a new message to a conversation"""
+        args = request.args
+        apikey = args.get("apikey")
+        if not apikey:
+            return {"error": "Missing API key"}, 401
+        if not ApiKey.check_api_key(apikey):
+            return {"error": "Invalid API key"}, 401
         data = request.get_json()
         conversation_id = data.get("conversation_id")
         text = data.get("text")
@@ -119,6 +132,12 @@ class GetConversation(Resource):
     })
     def get(self):
         """Retrieve all messages from a conversation"""
+        args = request.args
+        apikey = args.get("apikey")
+        if not apikey:
+            return {"error": "Missing API key"}, 401
+        if not ApiKey.check_api_key(apikey):
+            return {"error": "Invalid API key"}, 401
         conversation_id = request.args.get("conversation_id")
         conversation = Conversation.query.filter_by(uuid=conversation_id).first()
         if not conversation:

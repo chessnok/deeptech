@@ -25,3 +25,17 @@ class Message(db.Model):
 
     def __repr__(self):
         return f"<Message {self.id}>"
+
+
+class ApiKey(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(32), unique=True, nullable=False)
+    active = db.Column(db.Boolean, nullable=False, default=True)
+    expires = db.Column(db.DateTime, nullable=True)
+
+    def __init__(self, key, expires):
+        self.key = key
+        self.expires = expires
+
+    def __repr__(self):
+        return f"<ApiKey {self.key}>"

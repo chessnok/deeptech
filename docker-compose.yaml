@@ -31,5 +31,15 @@ services:
       - ./backend:/code/
     environment:
       DB_URL: postgres://easydocs:easydocs@db:5432/easydocs
+  tg_bot:
+    build: ./tg_bot
+    command: python bot.py
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: postgres://easydocs:easydocs@db:5432/easydocs
+    volumes:
+      - ./tg_bot:/code/
 volumes:
   db_data:

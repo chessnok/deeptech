@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16.4
+    restart: always
+    environment:
+      POSTGRES_USER: easydocs
+      POSTGRES_PASSWORD: easydocs
+      POSTGRES_DB: easydocs
+      POSTGRES_PORT: 5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d easydocs -U easydocs" ]
+      interval: 5s
+      timeout: 60s
+      retries: 20
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    command: python app.py
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/code/
+    environment:
+      DB_URL: postgresql://easydocs:easydocs@db:5432/easydocs
+  tg_bot:
+    build: ./tg_bot
+    command: python main.py
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./tg_bot:/code/
+volumes:
+  db_data:

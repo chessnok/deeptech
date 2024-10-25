@@ -1,91 +1,75 @@
 import telebot
 from dotenv import dotenv_values
-import requests
 from engine import get_conn
 from models import User
-from sqlalchemy import select
 import uuid
-
+from sqlalchemy import select, exists
+import requests
 
 bot = telebot.TeleBot(dotenv_values('.env')['TOKEN'])
 conn = get_conn()
 
 
-def apply_to_model(message: telebot.types.Message, conversation_id: uuid) -> str:
+def apply_to_model(message: telebot.types.Message,
+                   conversation_id: uuid) -> str:
     url = dotenv_values('.env')['MODEL_URL']
-    response = requests.post(url, json={'text': message.text, 
-                                        'user_id': message.from_user.id, 
-                                        'conversation_id': conversation_id})
+    response = requests.post(f"{url}/new_message", json={"text": message.text,
+                                                         'conversation_id': conversation_id})
     text = response.json()['text']
     return text
 
 
+def new_conversation(user_id: int):
+    connection = get_conn()
+    url = f"{dotenv_values('.env')['BACKEND_URL']}/new_conversation"
+    response = requests.post(url)
+    response.raise_for_status()
+    conversation_id = response.json()['uuid']
+    stmt = select(exists().where(User.c.tg_id == user_id))
+    user_exists = connection.execute(
+        stmt).scalar()
+
+    if not user_exists:
+        connection.execute(
+            User.insert().values(tg_id=user_id,
+                                 conversation_id=conversation_id)
+        )
+    else:
+        connection.execute(
+            User.update()
+            .where(User.c.tg_id == user_id)
+            .values(conversation_id=conversation_id)
+        )
+
+    connection.commit()
+
+
+def get_conversation_id(user_id: int):
+    connection = get_conn()  # Получаем соединение
+    stmt = select(User.c.conversation_id).where(User.c.tg_id == user_id)
+    result = connection.execute(
+        stmt).fetchone()  # Выполняем запрос и получаем первую строку
+
+    if result:
+        return result[0]
+    else:
+        return None  # Возвращаем None, если запись не найдена
+
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Hello, {0.first_name}!".format(message.from_user))
+    new_conversation(message.from_user.id)
+    bot.reply_to(message, "Привет, {0.first_name}!".format(message.from_user))
 
 
 @bot.message_handler(commands=['new'])
 def change_conversation_id(message):
-    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    s = select(User).where(~(User.c.id == user_id))
-    user = conn.execute(s).first()
-
-    if user is None:
-        conversation_id = uuid.uuid4()
-        conn.execute(
-            User.insert().values(
-                id=user_id,  # Использование преобразованного ID
-                first_name=message.from_user.first_name,
-                conversation_id=conversation_id
-            )
-        )
-    else:
-        conn.execute(
-            User.update().where(User.c.id == user_id).values(
-                conversation_id=uuid.uuid4()
-            )
-        )
+    new_conversation(message.from_user.id)
     bot.reply_to(message, "Контекст чата очищен")
-
-
-@bot.message_handler(commands=['test'])
-def test(message):
-    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    user = conn.execute(select(User).where(User.c.id == user_id)).first()
-
-    if user is None:
-        bot.reply_to(message, "Ты не зарегистрирован")
-        conversation_id = uuid.uuid4()
-        conn.execute(
-            User.insert().values(
-                id=user_id,
-                first_name=message.from_user.first_name,
-                conversation_id=conversation_id
-            )
-        )
-    else:
-        bot.reply_to(message, f"Ты зарегистрирован, Твое имя {user.first_name}, Твой ID {user.id}, "
-                              f"Твой контекст {user.conversation_id}")
 
 
 @bot.message_handler()
 def process_message(message):
-    user_id = uuid.UUID(int=message.from_user.id)  # Преобразование ID пользователя в UUID
-    s = select(User).where(~(User.c.id == user_id))  # Доступ к полю через User.c
-    user = conn.execute(s).first()
-
-    if user is None:
-        conversation_id = uuid.uuid4()
-        conn.execute(
-            User.insert().values(
-                id=user_id,  # Использование преобразованного ID
-                first_name=message.from_user.first_name,
-                conversation_id=conversation_id
-            )
-        )
-    else:
-        conversation_id = user.conversation_id
-
     # apply_to_model(message, conversation_id) // TODO: Когда будет работать ML
-    bot.reply_to(message, "Я тупой бот, скоро тут будет ответ ML")
+    bot.reply_to(message,
+                 f"Я тупой бот, скоро тут будет ответ ML, Текущий контекст: {get_conversation_id(message.from_user.id)}")

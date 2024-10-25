@@ -9,13 +9,18 @@ import uuid
 
 bot = telebot.TeleBot(dotenv_values('.env')['TOKEN'])
 conn = get_conn()
+apikey = dotenv_values('.env')['APIKEY']
 
 
 def apply_to_model(message: telebot.types.Message, conversation_id: uuid) -> str:
     url = dotenv_values('.env')['MODEL_URL']
+    params = {
+        'apikey': apikey,
+    }
     response = requests.post(url, json={'text': message.text, 
                                         'user_id': message.from_user.id, 
-                                        'conversation_id': conversation_id})
+                                        'conversation_id': conversation_id},
+                             params=params)
     text = response.json()['text']
     return text
 

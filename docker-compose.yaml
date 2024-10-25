@@ -22,8 +22,6 @@ services:
   backend:
     build: ./backend
     command: python app.py
-    ports:
-      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -31,6 +29,8 @@ services:
       - ./backend:/code/
     environment:
       DB_URL: postgresql://easydocs:easydocs@db:5432/easydocs
+    ports:
+      - "8080:8080"
   tg_bot:
     build: ./tg_bot
     command: python main.py

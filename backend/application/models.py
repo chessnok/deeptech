@@ -1,5 +1,8 @@
+from typing import List
 import uuid
 from datetime import datetime
+
+from sqlalchemy.orm import Mapped
 
 from application import db
 
@@ -7,22 +10,26 @@ from sqlalchemy.dialects.postgresql import UUID
 
 
 class Conversation(db.Model):
+    __tablename__ = "conversation"
+
     uuid = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created = db.Column(db.DateTime, nullable=False, default=db.func.now())
-    messages = db.relationship("Message", backref="conversation", lazy=True)
+    messages : Mapped[List["Message"]] = db.relationship(back_populates="conversation")
 
     def __repr__(self):
         return f"<Conversation {self.uuid}>"
 
 
 class Message(db.Model):
+    __tablename__ = "message"
+
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
     created = db.Column(db.DateTime, nullable=False, default=db.func.now())
     author = db.Column(db.Boolean, nullable=False)
-    conversation = db.Column(UUID(as_uuid=True),
-                             db.ForeignKey("conversation.uuid"),
-                             nullable=False)
+    conversation_id = db.mapped_column(db.ForeignKey("conversation.uuid"))
+    conversation = db.relationship("Conversation", back_populates="messages")
+
 
     def __repr__(self):
         return f"<Message {self.id}>"

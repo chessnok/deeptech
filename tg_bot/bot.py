@@ -13,16 +13,17 @@ apikey = dotenv_values('.env')['APIKEY']
 
 def apply_to_model(message: telebot.types.Message,
                    conversation_id: uuid) -> str:
-    url = dotenv_values('.env')['MODEL_URL']
+    url = dotenv_values('.env')['BACKEND_URL']
     response = requests.post(f"{url}/new_message", json={"text": message.text,
-                                                         'conversation_id': conversation_id})
+                                                         'conversation_id': str(conversation_id)})
+    response.raise_for_status()
     text = response.json()['text']
     return text
 
 
 def new_conversation(user_id: int):
     connection = get_conn()
-    url = f"{dotenv_values('.env')['BACKEND_URL']}/new_conversation"
+    url = f"{dotenv_values('.env')['BACKEND_URL']}/new_conv"
     response = requests.post(url)
     response.raise_for_status()
     conversation_id = response.json()['uuid']
@@ -71,6 +72,7 @@ def change_conversation_id(message):
 
 @bot.message_handler()
 def process_message(message):
-    # apply_to_model(message, conversation_id) // TODO: Когда будет работать ML
+    conv = get_conversation_id(message.from_user.id)
+    res = apply_to_model(message, conv)
     bot.reply_to(message,
-                 f"Я тупой бот, скоро тут будет ответ ML, Текущий контекст: {get_conversation_id(message.from_user.id)}")
+                 f"{res}, Текущий контекст: {conv}")

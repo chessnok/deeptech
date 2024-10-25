@@ -1,9 +1,8 @@
 from flask import jsonify, request
 from flasgger import swag_from
 from flask_restful import Resource
-from application import app, db, api
+from application import db, api
 from application.models import Conversation, Message
-from models import ApiKey
 
 
 class NewConversation(Resource):
@@ -25,12 +24,12 @@ class NewConversation(Resource):
     })
     def post(self):
         """Create a new conversation and return its UUID"""
-        args = request.args
-        apikey = args.get("apikey")
-        if not apikey:
-            return {"error": "Missing API key"}, 401
-        if not ApiKey.check_api_key(apikey):
-            return {"error": "Invalid API key"}, 401
+        # args = request.args
+        # apikey = args.get("apikey")
+        # if not apikey:
+        #     return {"error": "Missing API key"}, 401
+        # if not ApiKey.check_api_key(apikey):
+        #     return {"error": "Invalid API key"}, 401
         conversation = Conversation()
         db.session.add(conversation)
         db.session.commit()
@@ -54,20 +53,18 @@ class NewMessage(Resource):
                 'required': True,
                 'description': 'Text of the message'
             },
-            {
-                'name': 'author',
-                'in': 'json',
-                'type': 'boolean',
-                'required': True,
-                'description': 'Author of the message'
-            }
         ],
         'responses': {
             200: {
-                'description': 'Message added successfully',
+                'description': 'Response message',
                 'schema': {
-                    'type': 'string',
-                    'example': 'OK'
+                    'type': 'object',
+                    'properties': {
+                        'text': {
+                            'type': 'string',
+                            'example': 'Response for the message'
+                        }
+                    }
                 }
             },
             404: {
@@ -77,25 +74,27 @@ class NewMessage(Resource):
     })
     def post(self):
         """Add a new message to a conversation"""
-        args = request.args
-        apikey = args.get("apikey")
-        if not apikey:
-            return {"error": "Missing API key"}, 401
-        if not ApiKey.check_api_key(apikey):
-            return {"error": "Invalid API key"}, 401
+        # args = request.args
+        # apikey = args.get("apikey")
+        # if not apikey:
+        #     return {"error": "Missing API key"}, 401
+        # if not ApiKey.check_api_key(apikey):
+        #     return {"error": "Invalid API key"}, 401
         data = request.get_json()
         conversation_id = data.get("conversation_id")
         text = data.get("text")
-        author = data.get("author")
 
         conversation = Conversation.query.filter_by(uuid=conversation_id).first()
         if not conversation:
             return {"error": "Conversation not found"}, 404
 
-        message = Message(text=text, author=author, conversation=conversation_id)
+        message = Message(text=text, author=0, conversation=conversation)
+        resp_from_model = "Response from model"
+        message2 = Message(text=resp_from_model, author=1, conversation=conversation)
         db.session.add(message)
+        db.session.add(message2)
         db.session.commit()
-        return jsonify("OK")
+        return jsonify({"text": resp_from_model})
 
 
 class GetConversation(Resource):
@@ -103,7 +102,7 @@ class GetConversation(Resource):
         'parameters': [
             {
                 'name': 'conversation_id',
-                'in': 'query',
+                'in': 'json',
                 'type': 'string',
                 'required': True,
                 'description': 'UUID of the conversation to retrieve messages from'
@@ -132,13 +131,13 @@ class GetConversation(Resource):
     })
     def get(self):
         """Retrieve all messages from a conversation"""
-        args = request.args
-        apikey = args.get("apikey")
-        if not apikey:
-            return {"error": "Missing API key"}, 401
-        if not ApiKey.check_api_key(apikey):
-            return {"error": "Invalid API key"}, 401
-        conversation_id = request.args.get("conversation_id")
+        data = request.get_json()
+        # apikey = args.get("apikey")
+        # if not apikey:
+        #     return {"error": "Missing API key"}, 401
+        # if not ApiKey.check_api_key(apikey):
+        #     return {"error": "Invalid API key"}, 401
+        conversation_id = data.get("conversation_id")
         conversation = Conversation.query.filter_by(uuid=conversation_id).first()
         if not conversation:
             return {"error": "Conversation not found"}, 404

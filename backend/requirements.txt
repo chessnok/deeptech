@@ -5,3 +5,4 @@ uuid==1.30
 flasgger==0.9.7.1
 flask-restful==0.3.10
 python-decouple==3.8
+sentence_transformers==3.2.1

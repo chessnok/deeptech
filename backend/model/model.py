@@ -17,7 +17,7 @@ pipeline_gen = pipeline(
     "text-generation",
     model=model_generate,
     torch_dtype=torch.float16,
-    device=-1,
+    device=0,
 )
 
 

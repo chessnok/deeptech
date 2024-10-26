@@ -107,3 +107,17 @@ def find_best_cos_sim(question, text, model, top=5):
         text.pop(cos_sim.index(i))
         cos_sim.pop(cos_sim.index(i))
     return top_n
+def find_picture(text):
+    """
+    Поиск и возврат картинки, если она есть в тексте
+    
+    :param text: Тескт описания категории (результат работы find_context())
+    :return: название файла с картинкой
+    """
+    pics = []
+    while True:
+        if 'Aspose.Words' in text:
+            pics.append(text[text.index('Aspose.Words'):text.index('Aspose.Words')+57])
+            text = text[:text.index('Aspose.Words')+1]+text[text.index('Aspose.Words')+57:]
+        else:
+            return pics

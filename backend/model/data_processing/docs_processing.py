@@ -122,7 +122,7 @@ def find_picture(text):
         else:
             return pics
 
-def multi_qu(query, docs):
+def multi_qu(query, docs, model):
     """
     Выбор наиболее подходящей категории с помощью ллм
     

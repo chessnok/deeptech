@@ -1,16 +1,13 @@
-from model.data_processing.docs_processing import *
+from data_processing.docs_processing import *
 from sentence_transformers import SentenceTransformer
-from huggingface_hub import login
 
 # Загружаем модель для создания embedding-векторов
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-multi_q = SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1')
 from transformers import AutoTokenizer, pipeline
 import torch
 
 # Модель
-login()
-model_generate = "google/gemma-2-9b-it"
+model_generate = "recoilme/Gemma-2-Ataraxy-Gemmasutra-9B-slerp"
 # Инициализация токенайзера
 tokenizer = AutoTokenizer.from_pretrained(model_generate)
 
@@ -45,9 +42,9 @@ real_categories = split_into_categories(categories)
 def answer_generate(question, context, history):
     # Сообщения
     messages = history + [
-        {"role": "user", "content": f"Привет"},
+        {"role": "user", "content": f"Дай часть текста из документации приложения по которой я задам вопрос"},
         {"role": "assistant", "content": f"{context}"},
-        {"role": "user", "content": f"{question}"}
+        {"role": "user", "content": f'основываясь на данном тобой тексте дай ответ на мой вопрос, если ответа в твоем тексте нет, но тема приложения та же напиши только "нет ответа" и ничего более, если вопрос вообще не относится к теме приложения напиши только "нет темы", вот сам вопрос: {question}'}
     ]
 
     # Применяем шаблон для подготовки сообщений
@@ -57,7 +54,9 @@ def answer_generate(question, context, history):
 
 
 def response(question, history):
-    best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)
-    context = find_context(best_option.lower(), full_text)
+    best_option = find_best_cos_sim(question, real_categories, model)
+    context = find_context(best_option[0].lower(), full_text)
     return answer_generate(question, context, history), find_picture(context)
 
+if __name__=='__main__':
+    response()

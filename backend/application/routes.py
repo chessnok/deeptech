@@ -4,6 +4,7 @@ from flask_restful import Resource
 from application import db, api
 from application.models import Conversation, Message
 
+from model.model import response
 
 class NewConversation(Resource):
     @swag_from({

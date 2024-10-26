@@ -22,7 +22,7 @@ categories = [i.split('\t')[0] for i in text[6:93]]
 real_categories = split_into_categories(categories)
 # пользователь вводит вопрос и происходит поиск лучшей категории
 question = input()
-best_option = find_best_cos_sim(question, real_categories)
+best_option = find_best_cos_sim(question, real_categories, model)
 # получение текста документации для категории
 find_context(best_option.lower(), full_text)
 

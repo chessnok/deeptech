@@ -57,6 +57,8 @@ def cosine_similarity(text1, text2, model):
 
 def find_best_cos_sim(question, text):
     cos_sim = []
+    # считаем косинусные сходства для категорий и вопроса
     for i in text:
         cos_sim.append(cosine_similarity(i, question))
-    return text[cos_sim.index(max(cos_sim))]
+    # выбираем категорию с наибольшим косинусным сходством
+    return text[cos_sim.index(max(cos_sim))].split('. ')[-1]

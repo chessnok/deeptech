@@ -29,6 +29,7 @@ services:
       - ./backend:/code/
     environment:
       DB_URL: postgresql://easydocs:easydocs@db:5432/easydocs
+      BACKEND_URL: http://backend:8080
     ports:
       - "8080:8080"
   tg_bot:

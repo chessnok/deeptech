@@ -4,6 +4,7 @@ from huggingface_hub import login
 
 # Загружаем модель для создания embedding-векторов
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+multi_q = SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1')
 from transformers import AutoTokenizer, pipeline
 import torch
 
@@ -56,7 +57,7 @@ def answer_generate(question, context, history):
 
 
 def response(question, history):
-    best_option = find_best_cos_sim(question, real_categories, model)
-    context = find_context(best_option[0].lower(), full_text)
+    best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)
+    context = find_context(best_option.lower(), full_text)
     return answer_generate(question, context, history), find_picture(context)
 

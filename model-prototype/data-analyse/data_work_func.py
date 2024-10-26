@@ -77,7 +77,7 @@ def cosine_similarity(text1, text2, model):
     
     return cosine_sim.item() 
 
-def find_best_cos_sim(question, text):
+def find_best_cos_sim(question, text, model, top=5):
     """
     Расчет наибольшего косинусного сходства для вопроса и категорий
     
@@ -87,5 +87,6 @@ def find_best_cos_sim(question, text):
     """
     cos_sim = []
     for i in text:
-        cos_sim.append(cosine_similarity(i, question))
-    return text[cos_sim.index(max(cos_sim))].split('. ')[-1]
+        cos_sim.append(cosine_similarity(i, question, model))
+    top_n = [text[cos_sim.index(i)] for i in sorted(cos_sim, reverse=True)[:top]]
+    return top_n

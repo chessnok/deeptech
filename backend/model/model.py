@@ -1,4 +1,4 @@
-from data_processing.docs_processing import *
+from model.data_processing.docs_processing import *
 from sentence_transformers import SentenceTransformer
 
 # Загружаем модель для создания embedding-векторов

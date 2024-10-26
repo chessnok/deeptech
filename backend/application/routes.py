@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flasgger import swag_from
 from flask_restful import Resource
 from application import db, api
-from application.models import Conversation, Message, ApiKey
+from application.models import Conversation, Message
 
 
 class NewConversation(Resource):
@@ -63,6 +63,13 @@ class NewMessage(Resource):
                         'text': {
                             'type': 'string',
                             'example': 'Response for the message'
+                        },
+                        'images': {
+                            'type': 'list',
+                            'items': {
+                                'type': 'string',
+                                'example': 'image123.jpg'
+                            }
                         }
                     }
                 }
@@ -87,14 +94,13 @@ class NewMessage(Resource):
         conversation = Conversation.query.filter_by(uuid=conversation_id).first()
         if not conversation:
             return {"error": "Conversation not found"}, 404
-
         message = Message(text=text, author=0, conversation=conversation)
         resp_from_model = "Response from model"
         message2 = Message(text=resp_from_model, author=1, conversation=conversation)
         db.session.add(message)
         db.session.add(message2)
         db.session.commit()
-        return jsonify({"text": resp_from_model})
+        return jsonify({"text": resp_from_model, "images": ["Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.001.png"] })
 
 
 class GetConversation(Resource):
@@ -148,7 +154,7 @@ class GetConversation(Resource):
                 "id": message.id,
                 "text": message.text,
                 "created": message.created.isoformat(),
-                "author": message.author
+                "author": message.author,
             }
             for message in conversation.messages
         ]

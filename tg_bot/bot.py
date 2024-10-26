@@ -15,6 +15,11 @@ conn = get_conn()
 apikey = config('APIKEY', default='')
 admin_group_id = config('ADMIN_GROUP_ID', default='')
 
+def send_files(chat_id, files):
+    for file_path in files:
+        with open(file_path, 'rb') as file:
+            bot.send_document(chat_id, file)
+
 
 def apply_to_model(message: telebot.types.Message,
                    conversation_id: uuid) -> (str, int):
@@ -76,7 +81,7 @@ def change_conversation_id(message):
 @bot.message_handler(func=lambda message: message.chat.type == 'private')
 def process_message(message: Message):
     conv = get_conversation_id(message.from_user.id)
-    #text, code = apply_to_model(message, conv)
+    # text, code = apply_to_model(message, conv)
     if message.text == 'ХАЧУ АДМИНА':
         text = "Админ"
         code = 3
@@ -84,7 +89,10 @@ def process_message(message: Message):
         text = 'АДМИН СПИТ'
         code = 2
     if code == 1:
+        im = ['Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.002.png', 'Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.011.png']
+        im = [f"images/{i}" for i in im]
         bot.reply_to(message, text)
+        send_files(message.chat.id, im)
     elif code == 2:
         bot.reply_to(message, "К сожалению ответа на ваш вопрос нет в документации. \n" + text)
     else:

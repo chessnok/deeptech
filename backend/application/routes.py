@@ -3,7 +3,6 @@ from flasgger import swag_from
 from flask_restful import Resource
 from application import db, api
 from application.models import Conversation, Message
-from model.model import response
 
 
 class NewConversation(Resource):
@@ -25,8 +24,6 @@ class NewConversation(Resource):
     })
     def post(self):
         """Create a new conversation and return its UUID"""
-        args = request.args
-        apikey = args.get("apikey")
         # if not apikey:
         #     return {"error": "Missing API key"}, 401
         # if not ApiKey.check_api_key(apikey):
@@ -82,8 +79,6 @@ class NewMessage(Resource):
     })
     def post(self):
         """Add a new message to a conversation"""
-        args = request.args
-        apikey = args.get("apikey")
         # if not apikey:
         #     return {"error": "Missing API key"}, 401
         # if not ApiKey.check_api_key(apikey):
@@ -95,7 +90,8 @@ class NewMessage(Resource):
         if not conversation:
             return {"error": "Conversation not found"}, 404
         message = Message(text=text, author=0, conversation=conversation)
-        answer, images = response(text, history=[])
+        # answer, images = response(text, history=[])
+        answer, images = "", []
         message2 = Message(text=answer, author=1, conversation=conversation)
         db.session.add(message)
         db.session.add(message2)
@@ -138,8 +134,6 @@ class GetConversation(Resource):
     def get(self):
         """Retrieve all messages from a conversation"""
         data = request.get_json()
-        args = request.args
-        apikey = args.get("apikey")
         # if not apikey:
         #     return {"error": "Missing API key"}, 401
         # if not ApiKey.check_api_key(apikey):

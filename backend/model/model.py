@@ -26,7 +26,6 @@ pipeline_gen = pipeline(
 with open('./data/data.md') as f:
     text = []
     full_text = []
-    # удалим пунктуацию и пустые строки
     for i in f:
         full_text.append(i)
         i=i.replace('\n', '')
@@ -40,23 +39,21 @@ categories = [i.split('\t')[0] for i in text[6:93]]
 real_categories = split_into_categories(categories)
 # пользователь вводит вопрос и происходит поиск лучшей категории
 
-def answer_generate(question, context, history=[{}]):
+def answer_generate(question, context, history):
     # Сообщения
-    messages = [
+    messages = history + [
         {"role": "user", "content": f"Привет"},
         {"role": "assistant", "content": f"{context}"},
         {"role": "user", "content": f"{question}"}
     ]
+
     # Применяем шаблон для подготовки сообщений
     prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     outputs = pipeline_gen(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
-    return(outputs[0]["generated_text"])
-def main(question):
-    best_option = find_best_cos_sim(question, real_categories, model)
-    # получение текста документации для категории
-    context = find_context(best_option[0].lower(), full_text)
-    print(context)
-    answer_generate(question, context)
+    return outputs[0]["generated_text"]
 
-if __name__ == '__main__':
-    main('Как удалить раздел?')
+
+def response(question, history):
+    best_option = find_best_cos_sim(question, real_categories, model)
+    context = find_context(best_option[0].lower(), full_text)
+    answer_generate(question, context, history)

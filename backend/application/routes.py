@@ -3,6 +3,7 @@ from flasgger import swag_from
 from flask_restful import Resource
 from application import db, api
 from application.models import Conversation, Message
+from model.model import response
 
 
 class NewConversation(Resource):
@@ -90,17 +91,16 @@ class NewMessage(Resource):
         data = request.get_json()
         conversation_id = data.get("conversation_id")
         text = data.get("text")
-
         conversation = Conversation.query.filter_by(uuid=conversation_id).first()
         if not conversation:
             return {"error": "Conversation not found"}, 404
         message = Message(text=text, author=0, conversation=conversation)
-        resp_from_model = "Response from model"
-        message2 = Message(text=resp_from_model, author=1, conversation=conversation)
+        answer, images = response(text)
+        message2 = Message(text=answer, author=1, conversation=conversation)
         db.session.add(message)
         db.session.add(message2)
         db.session.commit()
-        return jsonify({"text": resp_from_model, "images": ["Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.001.png"] })
+        return jsonify({"text": answer, "images": images})
 
 
 class GetConversation(Resource):

@@ -7,8 +7,13 @@ def remove_punctuation(text):
     translator = str.maketrans('', '', string.punctuation) 
     return text.translate(translator)
 
-# Загрузите оглавление, получите разбиение по категориям, подходящее для дальнейшего использования
 def split_into_categories(categories):
+    """
+    Разбиение на категории
+    
+    :param categories: Оглавление документации, считанное из формата Markdown
+    :return: Список всех категорий по порядку. 
+    """
     cat = []
     place = '1'
     work_path = ''
@@ -28,8 +33,15 @@ def split_into_categories(categories):
             place = i.split()[0] # обновляем номер категории
     return cat
 
-# поиск описания категории в документации. На вход подается категория и полная документация
+
 def find_context(title, data):
+    """
+    Поиск описания категории в документации.
+    
+    :param title: Категория, которую нужно найти
+    :param data: Документация, считанная из формата Markdown
+    :return: Текст описания категории
+    """
     ind = 0
     # обнаружение индекса категории
     for i in range(len(data)):

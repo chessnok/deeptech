@@ -21,21 +21,30 @@ def split_into_categories(categories):
     """
     cat = []
     place = '1'
+    step = 1
     work_path = ''
     for i in categories:
         # если у категории есть продолжение, прыгаем глубже
         if place+'1' == i.split()[0]:
             work_path += '. '+' '.join(i.split()[1:]) # обновляем название категории
             place += '1' # обновляем номер категории
+            step += 1
         # достигли финальной точки категории, но это не самая первая категория (у первой категории всегда есть подкатегория, поэтому рассматривается отдельно)
-        elif len(i.split()[0])>1:
+        elif place[:-1]+str(int(place[-1])+1) == i.split()[0]:
             cat.append(work_path[2:]) # сохраняем полное название категории
-            work_path = '. '.join(work_path.split('. ')[:len(place)])+'. '+' '.join(i.split()[1:]) # обновляем название категории
+            work_path = '. '.join(work_path.split('. ')[:step])+'. '+' '.join(i.split()[1:]) # обновляем название категории
             place = i.split()[0] # обновляем номер категории
         else:
+            diff = len(place) - len(i.split()[0])
+            if i.split()[0][-1] == 0:
+                diff += 1
+            elif place[-1] == 0:
+                diff -= 1
+            step -= diff
             cat.append(work_path[2:]) # сохраняем полное название категории
-            work_path = '. '+' '.join(i.split()[1:]) # обновляем название категории
+            work_path = '. '.join(work_path.split('. ')[:step])+'. '+' '.join(i.split()[1:])
             place = i.split()[0] # обновляем номер категории
+            
     return cat
 
 
@@ -82,11 +91,17 @@ def find_best_cos_sim(question, text, model, top=5):
     Расчет наибольшего косинусного сходства для вопроса и категорий
     
     :param question: Вопрос
-    :param text: Список категорий
+    :param text: Список из категорий
     :return: Категория с наибольшим косинусным сходством с вопросом
     """
+    text_info = [i.split('. ')[-1] for i in text]
     cos_sim = []
-    for i in text:
+    for i in text_info:
         cos_sim.append(cosine_similarity(i, question, model))
-    top_n = [text[cos_sim.index(i)] for i in sorted(cos_sim, reverse=True)[:top]]
+    scs = sorted(cos_sim, reverse=True)
+    top_n = []
+    for i in scs[:top]:
+        top_n.append(text[cos_sim.index(i)])
+        text.pop(cos_sim.index(i))
+        cos_sim.pop(cos_sim.index(i))
     return top_n

@@ -56,7 +56,7 @@ def main(question):
     # получение текста документации для категории
     context = find_context(best_option[0].lower(), full_text)
     print(context)
-    answer_generate(question, context)
+    return find_picture(context), answer_generate(question, context)
 
 if __name__ == '__main__':
     main('Как удалить раздел?')

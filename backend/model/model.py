@@ -1,5 +1,6 @@
 from model.data_processing.docs_processing import *
 from sentence_transformers import SentenceTransformer
+from huggingface_hub import login
 
 # Загружаем модель для создания embedding-векторов
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
@@ -7,6 +8,7 @@ from transformers import AutoTokenizer, pipeline
 import torch
 
 # Модель
+login()
 model_generate = "google/gemma-2-9b-it"
 # Инициализация токенайзера
 tokenizer = AutoTokenizer.from_pretrained(model_generate)

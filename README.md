@@ -1,4 +1,5 @@
-# EasyDocs by DeepTech
+# EasyDocs by DeepTech<img src="https://github.com/blackcater/blackcater/raw/main/images/Hi.gif" height="50"/></h1>
+
 
 ### Installation
 

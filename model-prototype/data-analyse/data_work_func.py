@@ -2,14 +2,19 @@ import string
 from sentence_transformers import util
 import numpy as np
 
-# уберает всю пунктуацию с помощью библиотеки string 
 def remove_punctuation(text):
+    """
+    Убирает пунктуацию текста
+    
+    :param text: Входной текст. 
+    :return: Текст без знаков пунктуации. 
+    """
     translator = str.maketrans('', '', string.punctuation) 
     return text.translate(translator)
 
 def split_into_categories(categories):
     """
-    Разбиение на категории
+    Разбиение на категории при помощи оглавления.
     
     :param categories: Оглавление документации, считанное из формата Markdown
     :return: Список всех категорий по порядку. 
@@ -58,19 +63,29 @@ def find_context(title, data):
 
 
 def cosine_similarity(text1, text2, model):
-    # Преобразуем текст в embedding-векторы
+    """
+    Расчет косинусного сходства
+    
+    :param text1, text2: Тексты для проверки.
+    :param model: Модель эммбеддингов
+    :return: Косинсное сходство в формате float
+    """
     embedding1 = model.encode(text1, convert_to_tensor=True)
     embedding2 = model.encode(text2, convert_to_tensor=True)
     
-    # Вычисляем косинусное сходство
     cosine_sim = util.pytorch_cos_sim(embedding1, embedding2)
     
-    return cosine_sim.item()  # Возвращаем значение сходства как float
+    return cosine_sim.item() 
 
 def find_best_cos_sim(question, text):
+    """
+    Расчет наибольшего косинусного сходства для вопроса и категорий
+    
+    :param question: Вопрос
+    :param text: Список категорий
+    :return: Категория с наибольшим косинусным сходством с вопросом
+    """
     cos_sim = []
-    # считаем косинусные сходства для категорий и вопроса
     for i in text:
         cos_sim.append(cosine_similarity(i, question))
-    # выбираем категорию с наибольшим косинусным сходством
     return text[cos_sim.index(max(cos_sim))].split('. ')[-1]

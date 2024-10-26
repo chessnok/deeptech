@@ -95,7 +95,7 @@ class NewMessage(Resource):
         if not conversation:
             return {"error": "Conversation not found"}, 404
         message = Message(text=text, author=0, conversation=conversation)
-        answer, images = response(text)
+        answer, images = response(text, history=[])
         message2 = Message(text=answer, author=1, conversation=conversation)
         db.session.add(message)
         db.session.add(message2)

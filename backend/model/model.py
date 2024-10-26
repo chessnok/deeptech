@@ -6,7 +6,7 @@ model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 multi_q = SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1')
 from transformers import AutoTokenizer, pipeline
 import torch
-
+import re
 # Модель
 model_generate = "recoilme/Gemma-2-Ataraxy-Gemmasutra-9B-slerp"
 # Инициализация токенайзера
@@ -45,14 +45,14 @@ def answer_generate(question, context, history):
     messages = history + [
         {"role": "user", "content": f"Дай часть текста из документации приложения по которой я задам вопрос"},
         {"role": "assistant", "content": f"{context}"},
-        {"role": "user", "content": f'основываясь на данном тобой тексте дай ответ на мой вопрос, если ответа в твоем тексте нет, но тема приложения та же напиши только "нет ответа" и ничего более, если вопрос вообще не относится к теме приложения напиши только "нет темы", вот сам вопрос: {question}'}
+        {"role": "user", "content": f'основываясь на данном тобой тексте дай развернутый ответ на мой вопрос, но при этом не придывай ничего своего, если ответа в твоем тексте нет, но тема приложения та же напиши только "нет ответа" и ничего более, если вопрос вообще не относится к теме приложения напиши только "нет темы", вот сам вопрос: {question}'}
     ]
 
     # Применяем шаблон для подготовки сообщений
     prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    outputs = pipeline_gen(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
-    return outputs[0]["generated_text"]
-
+    outputs = pipeline_gen(prompt, max_new_tokens=512, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+    return re.split(r'<start_of_turn>', outputs[0]["generated_text"])[-1]
+     
 
 def response(question, history):
     best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)

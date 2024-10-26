@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Tech</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: white;
+            font-family: Arial, sans-serif;
+            color: black;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: calc(100% - 10%);
+            max-width: 1200px;
+            margin: auto;
+            border-radius: 15px;
+        }
+        .sidebar {
+            width: 12.5%;
+            height: calc(100% - 25%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 10px;
+        }
+        .button {
+            border: 2px solid black;
+            color: black;
+            background: white;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .header {
+            height: 12.5%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+        }
+        .header h1 {
+            color: #8A2BE2;
+            font-weight: bold;
+            margin: 0;
+            padding-right: 12.5%;
+        }
+        .chat-area {
+            flex-grow: 1;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10%;
+        }
+        .message-input {
+            background-color: white;
+            color: black;
+            border: 2px solid black;
+            border-radius: 5px;
+            padding: 10px;
+            flex-grow: 1;
+            resize: none;
+            margin-bottom: 10px;
+        }
+        .message {
+            border: none;
+            background-color: #8A2BE2;
+            color: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 10px;
+            white-space: pre-wrap;
+        }
+        .send-button {
+            background-color: #8A2BE2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+        }
+        .send-button:hover {
+            background-color: #B0B0B0;
+        }
+        .chat-list {
+            margin-top: 10px;
+            color: black;
+        }
+        .telegram-button {
+            text-decoration: none;
+            color: white;
+            background-color:  #0088cc;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 5px;
+            display: block;
+            text-align: center;
+        }
+        .loading {
+            display: none;
+            font-size: 14px;
+            color: gray;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Deep Tech</h1>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <button class="button" onclick="addChat()">Добавить чат</button>
+        <a href="https://t.me/EasyDocsDeepTech_bot" class="telegram-button" target="_blank">Telegram bot</a>
+        <div class="chat-list" id="chatList"></div>
+    </div>
+    <div class="chat-area" id="currentChatArea">
+        <div id="messages" style="overflow-y: auto; flex-grow: 1; margin-bottom: 10px;"></div>
+        <div style="display: flex; align-items: center;">
+            <textarea class="message-input" id="messageInput" placeholder="Напишите сообщение..." onkeypress="checkEnter(event)"></textarea>
+            <button class="send-button" onclick="sendMessage()">
+                ↑
+            </button>
+        </div>
+        <div id="loading" class="loading">Ответ обрабатывается...</div>
+    </div>
+</div>
+
+<script>
+    const messagesContainer = document.getElementById('messages');
+    const chatList = document.getElementById('chatList');
+    const currentChatArea = document.getElementById('currentChatArea');
+    const loadingIndicator = document.getElementById('loading');
+    let chats = JSON.parse(localStorage.getItem('chats')) || [];
+
+    function loadChats() {
+        chatList.innerHTML = '';
+        chats.forEach((chat) => {
+            const chatElement = document.createElement('div');
+            chatElement.textContent = `${chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : 'Нет сообщений'}`;
+            chatElement.style.cursor = 'pointer';
+            chatElement.onclick = () => loadChat(chat.id);
+            chatList.appendChild(chatElement);
+        });
+    }
+
+    function loadChat(chatId) {
+        messagesContainer.innerHTML = '';
+        const chat = chats.find(c => c.id === chatId);
+        chat.messages.forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = message;
+            messagesContainer.appendChild(messageElement);
+        });
+        currentChatArea.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function addChat() {
+        if (chats.length >= 5) {
+            chats.shift();
+        }
+        const newChat = { id: new Date().getTime(), messages: [] };
+        chats.push(newChat);
+        localStorage.setItem('chats', JSON.stringify(chats));
+        loadChats();
+        loadChat(newChat.id);
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const messageText = input.value;
+
+        if (messageText.trim() !== "") {
+            const currentChat = chats[chats.length - 1];
+            currentChat.messages.push(messageText);
+            localStorage.setItem('chats', JSON.stringify(chats));
+
+            // Создание элемента сообщения для отправленного сообщения
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = messageText;
+            messagesContainer.appendChild(messageElement);
+            
+            // Показать индикатор загрузки
+            loadingIndicator.style.display = 'block';
+
+            try {
+                // Отправка сообщения на сервер
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const serverMessageElement = document.createElement('div');
+                    serverMessageElement.classList.add('message');
+                    serverMessageElement.textContent = data.reply; // Предполагается, что сервер возвращает поле 'reply'
+                    messagesContainer.appendChild(serverMessageElement);
+                } else {
+                    console.error('Ошибка при получении ответа от сервера');
+                }
+            } catch (error) {
+                console.error('Ошибка сети:', error);
+            } finally {
+                // Скрыть индикатор загрузки
+                loadingIndicator.style.display = 'none';
+            }
+
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            loadChats();
+        }
+    }
+
+    function checkEnter(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    loadChats();
+    if (chats.length > 0) {
+        loadChat(chats[chats.length - 1].id);
+    }
+</script>
+</body>
+</html>

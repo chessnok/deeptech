@@ -1,21 +1,24 @@
+from decouple import config
 import telebot
-from dotenv import dotenv_values
+from telebot.types import BotCommand
+
 from engine import get_conn
 from models import User
 import uuid
 from sqlalchemy import select, exists
 import requests
 
-bot = telebot.TeleBot(dotenv_values('.env')['TOKEN'])
+bot = telebot.TeleBot(config('TOKEN', default=''))
 conn = get_conn()
-apikey = dotenv_values('.env')['APIKEY']
+apikey = config('APIKEY', default='')
 
 
 def apply_to_model(message: telebot.types.Message,
                    conversation_id: uuid) -> str:
-    url = dotenv_values('.env')['BACKEND_URL']
+    url = config('BACKEND_URL')
     response = requests.post(f"{url}/new_message", json={"text": message.text,
-                                                         'conversation_id': str(conversation_id)})
+                                                         'conversation_id': str(
+                                                             conversation_id)})
     response.raise_for_status()
     text = response.json()['text']
     return text
@@ -23,7 +26,7 @@ def apply_to_model(message: telebot.types.Message,
 
 def new_conversation(user_id: int):
     connection = get_conn()
-    url = f"{dotenv_values('.env')['BACKEND_URL']}/new_conv"
+    url = f"{config('BACKEND_URL')}/new_conv"
     response = requests.post(url)
     response.raise_for_status()
     conversation_id = response.json()['uuid']
@@ -50,7 +53,7 @@ def get_conversation_id(user_id: int):
     connection = get_conn()  # Получаем соединение
     stmt = select(User.c.conversation_id).where(User.c.tg_id == user_id)
     result = connection.execute(
-        stmt).fetchone()  # Выполняем запрос и получаем первую строку
+        stmt).fetchone()
 
     if result:
         return result[0]
@@ -61,18 +64,19 @@ def get_conversation_id(user_id: int):
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     new_conversation(message.from_user.id)
-    bot.reply_to(message, "Привет, {0.first_name}!".format(message.from_user))
-
+    bot.reply_to(message, f"Привет, {message.from_user.first_name}! Это бот технической документации. Что бы задать свой вопрос о документации просто напиши его, а что бы начать новую переписку /new")
+    bot.set_my_commands([
+        BotCommand("/new", "Начать новую переписку!")
+    ])
 
 @bot.message_handler(commands=['new'])
 def change_conversation_id(message):
     new_conversation(message.from_user.id)
-    bot.reply_to(message, "Контекст чата очищен")
+    bot.reply_to(message, "Надеюсь я ответил на твой предыдущий вопрос. Начнем новую переписку. Просто напиши свой вопрос о документации")
 
 
 @bot.message_handler()
 def process_message(message):
     conv = get_conversation_id(message.from_user.id)
     res = apply_to_model(message, conv)
-    bot.reply_to(message,
-                 f"{res}, Текущий контекст: {conv}")
+    bot.reply_to(message, res)

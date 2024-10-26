@@ -1,5 +1,4 @@
-from sqlalchemy import MetaData, Table, Column, VARCHAR, UUID, ForeignKey, \
-    INTEGER
+from sqlalchemy import MetaData, Table, Column, UUID, INTEGER
 
 metadata = MetaData()
 

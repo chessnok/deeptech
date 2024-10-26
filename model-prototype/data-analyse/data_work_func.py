@@ -58,9 +58,11 @@ def find_context(title, data):
     """
     ind = 0
     # обнаружение индекса категории
-    for i in range(len(data)):
-        if ('<a name="_toc' in data[i].lower()) and (title in data[i].lower()):
-            ind = i+1
+    data_steps = list(title.split('. '))
+    for step in data_steps:
+        for i in range(ind, len(data)):
+            if ('<a name="_toc' in data[i].lower()) and (step.lower() in data[i].lower()):
+                ind = i+1
     context = ''
     # поиск описания категории
     for i in data[ind:]:

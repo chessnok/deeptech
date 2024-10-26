@@ -7,7 +7,7 @@ from transformers import AutoTokenizer, pipeline
 import torch
 
 # Модель
-model_generate = "recoilme/Gemma-2-Ataraxy-Gemmasutra-9B-slerp"
+model_generate = "google/gemma-2-9b-it"
 # Инициализация токенайзера
 tokenizer = AutoTokenizer.from_pretrained(model_generate)
 

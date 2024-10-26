@@ -121,3 +121,22 @@ def find_picture(text):
             text = text[:text.index('Aspose.Words')+1]+text[text.index('Aspose.Words')+57:]
         else:
             return pics
+
+def multi_qu(query, docs):
+    """
+    Выбор наиболее подходящей категории с помощью ллм
+    
+    :param query: Вопрос
+    :param docs: Топ 5 категорий
+    :return: Лучшая категория
+    """
+    query_emb = model.encode(query)
+    doc_emb = model.encode(docs)
+
+    scores = util.dot_score(query_emb, doc_emb)[0].cpu().tolist()
+
+    doc_score_pairs = list(zip(docs, scores))
+
+    doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
+
+    return doc_score_pairs[0][0]

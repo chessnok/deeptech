@@ -56,4 +56,4 @@ def answer_generate(question, context, history):
 def response(question, history):
     best_option = find_best_cos_sim(question, real_categories, model)
     context = find_context(best_option[0].lower(), full_text)
-    answer_generate(question, context, history)
+    return answer_generate(question, context, history)

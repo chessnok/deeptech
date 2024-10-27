@@ -25,9 +25,12 @@ def get_multiple_answers(questions):
             "conversation_id": uuid,
             "text": q
         })
-        response = requests.request("POST", url, headers=headers, data=payload)
-        print(response.status_code)
-        print(response.json())
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            print(response.status_code)
+            print(response.json())
+        except RuntimeError:
+            response = 'Нет ответа
         model_answers.append(response.json()['text'])
     return model_answers
 def calc_score(model_answers, answers):

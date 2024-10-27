@@ -29,7 +29,7 @@ def apply_to_model(message: telebot.types.Message,
 
     payload = json.dumps({
         "conversation_id": "72a36700-2d34-4bcd-a7b9-21123e1a4e2b",
-        "text": "Что означает \"Черновик\"?"
+        "text": message.text,
     })
     headers = {
         'Content-Type': 'application/json'

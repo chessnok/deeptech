@@ -30,7 +30,7 @@ def apply_to_model(message: telebot.types.Message,
                                                              conversation_id)})
     response.raise_for_status()
     text = response.json()['text']
-    code = response.json()['code']
+    code = response.json()['images']
     return text, code
 
 
@@ -82,20 +82,17 @@ def change_conversation_id(message):
 @bot.message_handler(func=lambda message: message.chat.type == 'private')
 def process_message(message: Message):
     conv = get_conversation_id(message.from_user.id)
-    # text, code = apply_to_model(message, conv)
-    if message.text == 'ХАЧУ АДМИНА':
+    text,images = apply_to_model(message, conv)
+    if 'нет ответа' in text.lower():
         text = "Админ"
         code = 3
     else:
-        text = 'АДМИН СПИТ'
-        code = 2
+        code = 1
     if code == 1:
         im = ['Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.002.png', 'Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.011.png']
         im = [f"images/{i}" for i in im]
         bot.reply_to(message, text)
         send_files(message.chat.id, im)
-    elif code == 2:
-        bot.reply_to(message, "К сожалению ответа на ваш вопрос нет в документации. \n" + text)
     else:
         markup = InlineKeyboardMarkup()
         button = InlineKeyboardButton("Отправить вопрос администраторам", callback_data="send_to_admins")

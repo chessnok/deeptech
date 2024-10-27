@@ -35,10 +35,7 @@ with open('./data/data.md') as f:
             text.append(i)
 
 
-categories = [i.split('\t')[0] for i in text[6:93]]
-# используем функции из файла from docs_processing 
-real_categories = split_into_categories(categories)
-# пользователь вводит вопрос и происходит поиск лучшей категории
+
 
 def answer_generate(question, context, history):
     # Сообщения
@@ -55,6 +52,10 @@ def answer_generate(question, context, history):
      
 
 def response(question, history):
+    categories = [i.split('\t')[0] for i in text[6:93]]
+    # используем функции из файла from docs_processing 
+    real_categories = split_into_categories(categories)
+    # пользователь вводит вопрос и происходит поиск лучшей категории
     try:
         best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)
     except RuntimeError: 

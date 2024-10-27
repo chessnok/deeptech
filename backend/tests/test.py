@@ -1,9 +1,9 @@
-from model.data_processing.docs_processing import *
 import requests
 import json
 from sentence_transformers import SentenceTransformer
 import pandas as pd
 
+from model.data_processing.docs_processing import cosine_similarity
 
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 url = "http://93.92.199.89:40886/new_conv"
@@ -33,5 +33,4 @@ def calc_score(model_answers, answers):
         scores.append(cosine_similarity(model_answers[i], answers[i], model))
     return sum(scores)/len(scores)
 
-calc_score(get_multiple_answers(questions), answers)
-
+print(calc_score(get_multiple_answers(questions), answers))

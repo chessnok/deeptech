@@ -91,12 +91,12 @@ class NewMessage(Resource):
         if not conversation:
             return {"error": "Conversation not found"}, 404
         message = Message(text=text, author=0, conversation=conversation)
-        answer, images = response(text, history=[])
+        answer, images, best_option = response(text, history=[])
         message2 = Message(text=answer, author=1, conversation=conversation)
         db.session.add(message)
         db.session.add(message2)
         db.session.commit()
-        return jsonify({"text": answer, "images": images})
+        return jsonify({"text": answer, "images": images, "best_option": best_option})
 
 
 class GetConversation(Resource):

@@ -44,13 +44,13 @@ def answer_generate(question, context, history):
     # Сообщения
     messages = history + [
         {"role": "user", "content": f"Дай часть текста из документации приложения по которой я задам вопрос"},
-        {"role": "assistant", "content": f"{context}"},
+        {"role": "assistant", "content": f"Текст из документации приложения на: {context}"},
         {"role": "user", "content": f'основываясь на данном тобой тексте дай развернутый ответ на мой вопрос от имени разработчика платформы, но при этом не придумывай ничего, если ответа в твоем тексте нет, но тема приложения та же напиши только "нет ответа" и ничего более, если вопрос вообще не относится к теме приложения напиши только "нет темы" и ничего больше, вот сам вопрос: {question}'}
     ]
     print(context)
     # Применяем шаблон для подготовки сообщений
     prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    outputs = pipeline_gen(prompt, max_new_tokens=512, do_sample=True, temperature=0.8, top_k=50, top_p=0.95)
+    outputs = pipeline_gen(prompt, max_new_tokens=512, do_sample=True, temperature=0.8, top_k=65, top_p=0.9)
     return re.split(r'<start_of_turn>model\n', outputs[0]["generated_text"])[-1]
      
 

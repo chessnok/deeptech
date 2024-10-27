@@ -27,6 +27,7 @@ def get_multiple_answers(questions):
         })
         response = requests.request("POST", url, headers=headers, data=payload)
         model_answers.append(response)
+    return model_answers
 def calc_score(model_answers, answers):
     scores = []
     for i in range(len(model_answers)):

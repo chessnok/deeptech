@@ -16,8 +16,8 @@ uuid=requests.request("POST", url, headers=headers).json()['uuid']
 
 url = "http://93.92.199.89:40886/new_message"
 data = pd.read_excel('data.xlsx')
-questions = data['Вопросы']
-answers = data['Ответы']
+questions = data['Вопросы'].to_list()
+answers = data['Ответы'].to_list()
 def get_multiple_answers(questions):
     model_answers = []
     for q in questions:

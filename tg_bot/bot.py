@@ -1,3 +1,4 @@
+import json
 import logging
 
 from decouple import config
@@ -24,14 +25,20 @@ def send_files(chat_id, files):
 
 def apply_to_model(message: telebot.types.Message,
                    conversation_id: uuid) -> (str, int):
-    url = config('BACKEND_URL')
-    response = requests.post(f"{url}/new_message", json={"text": message.text,
-                                                         'conversation_id': str(
-                                                             conversation_id)})
-    response.raise_for_status()
+    url = "http://93.92.199.89:40886/new_message"
+
+    payload = json.dumps({
+        "conversation_id": "72a36700-2d34-4bcd-a7b9-21123e1a4e2b",
+        "text": "Что означает \"Черновик\"?"
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
     text = response.json()['text']
-    code = response.json()['images']
-    return text, code
+    image = response.json()['images']
+    return text, image
 
 
 def new_conversation(user_id: int):
@@ -59,9 +66,11 @@ def get_conversation_id(user_id: int):
     stmt = select(User.c.conversation_id).where(User.c.tg_id == user_id)
     return result[0] if (result := conn.execute(stmt).fetchone()) else None
 
+
 def get_user_id(message_id: int):
     stmt = select(Message_author_map.c.author_id).where(Message_author_map.c.message_id == message_id)
     return result[0] if (result := conn.execute(stmt).fetchone()) else None
+
 
 @bot.message_handler(commands=['start'], func=lambda message: message.chat.type == 'private')
 def send_welcome(message):
@@ -82,15 +91,15 @@ def change_conversation_id(message):
 @bot.message_handler(func=lambda message: message.chat.type == 'private')
 def process_message(message: Message):
     conv = get_conversation_id(message.from_user.id)
-    text,images = apply_to_model(message, conv)
+    text, images = apply_to_model(message, "72a36700-2d34-4bcd-a7b9-21123e1a4e2b")
+    logging.info(text)
     if 'нет ответа' in text.lower():
         text = "Админ"
         code = 3
     else:
         code = 1
     if code == 1:
-        im = ['Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.002.png', 'Aspose.Words.c13446d9-bf31-4bd4-a80f-8f3f393359ee.011.png']
-        im = [f"images/{i}" for i in im]
+        im = [f"images/{i}" for i in images]
         bot.reply_to(message, text)
         send_files(message.chat.id, im)
     else:

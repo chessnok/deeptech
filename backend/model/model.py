@@ -55,7 +55,9 @@ def answer_generate(question, context, history):
      
 
 def response(question, history):
-    best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)
+    try:
+        best_option = multi_qu(question, find_best_cos_sim(question, real_categories, model), multi_q)
+    except RuntimeError: best_option = find_best_cos_sim(question, real_categories, model)[0]
     context = find_context(best_option.lower(), full_text)
     return answer_generate(question, context, history), find_picture(context), best_option
 

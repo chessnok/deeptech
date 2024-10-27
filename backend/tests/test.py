@@ -26,7 +26,7 @@ def get_multiple_answers(questions):
             "text": q
         })
         response = requests.request("POST", url, headers=headers, data=payload)
-        model_answers.append(response)
+        model_answers.append(response.json()['text'])
     return model_answers
 def calc_score(model_answers, answers):
     scores = []
